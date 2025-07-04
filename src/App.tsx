@@ -13,6 +13,8 @@ import { Dashboard } from "./pages/dashboard/Dashboard";
 import { Entregadores } from "./pages/dashboard/Entregadores";
 import { MapaPage } from "./pages/dashboard/MapaPage";
 import { GerenciamentoUsuarios } from "./pages/dashboard/GerenciamentoUsuarios";
+import { Pedidos } from "./pages/dashboard/Pedidos";
+import { PedidoDetalhes } from "./pages/dashboard/PedidoDetalhes";
 import NotFound from "./pages/NotFound";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -56,7 +58,8 @@ const AppContent = () => {
                 <Route path="entregadores" element={<Entregadores />} />
                 <Route path="mapa" element={<MapaPage />} />
                 <Route path="usuarios" element={<GerenciamentoUsuarios />} />
-                <Route path="pedidos" element={<div className="p-6"><h1 className="text-2xl font-bold">Pedidos - Em desenvolvimento</h1></div>} />
+                <Route path="pedidos" element={<Pedidos />} />
+                <Route path="pedidos/:id" element={<PedidoDetalhes />} />
                 <Route path="financeiro" element={<div className="p-6"><h1 className="text-2xl font-bold">Financeiro - Em desenvolvimento</h1></div>} />
                 <Route path="suporte" element={<div className="p-6"><h1 className="text-2xl font-bold">Suporte - Em desenvolvimento</h1></div>} />
                 <Route path="notificacoes" element={<div className="p-6"><h1 className="text-2xl font-bold">Notificações - Em desenvolvimento</h1></div>} />

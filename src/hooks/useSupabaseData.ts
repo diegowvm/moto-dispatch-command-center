@@ -48,7 +48,7 @@ export const useEntregadorById = (id: string) => {
 };
 
 // Pedidos
-export const usePedidos = (filters?: { status?: string; empresa_id?: string }) => {
+export const usePedidos = (filters?: { status?: string; empresa_id?: string; search?: string }) => {
   return useQuery({
     queryKey: ['pedidos', filters],
     queryFn: async () => {
@@ -70,6 +70,10 @@ export const usePedidos = (filters?: { status?: string; empresa_id?: string }) =
       
       if (filters?.empresa_id) {
         query = query.eq('empresa_id', filters.empresa_id);
+      }
+
+      if (filters?.search) {
+        query = query.or(`numero_pedido.ilike.%${filters.search}%,descricao_produto.ilike.%${filters.search}%`);
       }
 
       const { data, error } = await query;

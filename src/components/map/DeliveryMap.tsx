@@ -123,7 +123,6 @@ export const DeliveryMap = () => {
   })) || mockDeliveries;
   
   const [selectedDelivery, setSelectedDelivery] = useState<Delivery | null>(null);
-  const [selectedDelivery, setSelectedDelivery] = useState<Delivery | null>(null);
   const [filter, setFilter] = useState<'todos' | 'disponivel' | 'ocupado' | 'offline'>('todos');
   const [searchTerm, setSearchTerm] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -160,18 +159,8 @@ export const DeliveryMap = () => {
 
   const refreshLocations = async () => {
     setIsRefreshing(true);
-    // Simulate API call to refresh locations
+    // Em produção, isso recarregaria os dados do Supabase
     await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Simulate some movement
-    setDeliveries(prev => prev.map(delivery => ({
-      ...delivery,
-      location: {
-        lat: delivery.location.lat + (Math.random() - 0.5) * 0.001,
-        lng: delivery.location.lng + (Math.random() - 0.5) * 0.001
-      }
-    })));
-    
     setIsRefreshing(false);
   };
 

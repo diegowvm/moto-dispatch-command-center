@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
-interface NotificationPermission {
+interface NotificationHook {
   permission: NotificationPermission;
   requestPermission: () => Promise<NotificationPermission>;
   showNotification: (title: string, options?: NotificationOptions) => void;
 }
 
-export const useNotifications = (): NotificationPermission => {
+export const useNotifications = (): NotificationHook => {
   const [permission, setPermission] = useState<NotificationPermission>('default');
   const { toast } = useToast();
 

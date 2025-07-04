@@ -32,7 +32,7 @@ export const useRealtime = () => {
     const channel = createChannel(`${tableName}-changes`);
     
     channel
-      .on('postgres_changes', {
+      .on('postgres_changes' as any, {
         event,
         schema: 'public',
         table: tableName

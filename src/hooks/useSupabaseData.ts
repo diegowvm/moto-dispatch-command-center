@@ -65,7 +65,7 @@ export const usePedidos = (filters?: { status?: string; empresa_id?: string }) =
         .order('created_at', { ascending: false });
 
       if (filters?.status) {
-        query = query.eq('status', filters.status);
+        query = query.eq('status', filters.status as any);
       }
       
       if (filters?.empresa_id) {
@@ -180,7 +180,7 @@ export const useUpdateEntregadorStatus = () => {
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const { data, error } = await supabase
         .from('entregadores')
-        .update({ status })
+        .update({ status: status as any })
         .eq('id', id)
         .select()
         .single();
@@ -203,7 +203,7 @@ export const useUpdatePedidoStatus = () => {
       status: string; 
       entregador_id?: string 
     }) => {
-      const updateData: any = { status };
+      const updateData: any = { status: status as any };
       
       if (entregador_id) {
         updateData.entregador_id = entregador_id;
@@ -252,7 +252,7 @@ export const useUpdateLocalizacao = () => {
           entregador_id,
           latitude,
           longitude,
-          status,
+          status: status as any,
           timestamp: new Date().toISOString()
         })
         .select()

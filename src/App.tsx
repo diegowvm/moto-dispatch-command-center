@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,21 +10,43 @@ import { Dashboard } from "./pages/dashboard/Dashboard";
 import { Entregadores } from "./pages/dashboard/Entregadores";
 import { MapaPage } from "./pages/dashboard/MapaPage";
 import NotFound from "./pages/NotFound";
+import { supabase } from "@/integrations/supabase/client";
+import { Session, User } from "@supabase/supabase-js";
 
 const queryClient = new QueryClient();
 
 const App = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const handleLogin = (credentials: { email: string; password: string }) => {
-    // In production, implement proper authentication with Supabase
-    console.log('Login attempt:', credentials);
-    setIsAuthenticated(true);
+  useEffect(() => {
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+      }
+    );
+
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
   };
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-  };
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">Carregando...</div>;
+  }
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -33,10 +55,10 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <Routes>
-            {!isAuthenticated ? (
+            {!session ? (
               <>
-                <Route path="/" element={<Login onLogin={handleLogin} />} />
-                <Route path="/login" element={<Login onLogin={handleLogin} />} />
+                <Route path="/" element={<Login />} />
+                <Route path="/login" element={<Login />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </>
             ) : (

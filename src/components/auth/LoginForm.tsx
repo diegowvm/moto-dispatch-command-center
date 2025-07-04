@@ -5,17 +5,16 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, Truck } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
-interface LoginFormProps {
-  onLogin: (credentials: { email: string; password: string }) => void;
-}
-
-export const LoginForm = ({ onLogin }: LoginFormProps) => {
+export const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,19 +31,27 @@ export const LoginForm = ({ onLogin }: LoginFormProps) => {
     setIsLoading(true);
     
     try {
-      // Simular autenticação - em produção, usar Supabase
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      onLogin({ email, password });
-      
-      toast({
-        title: "Login realizado com sucesso",
-        description: "Bem-vindo ao Dashboard Logtech",
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
-    } catch (error) {
+
+      if (error) {
+        throw error;
+      }
+
+      if (data.user) {
+        toast({
+          title: "Login realizado com sucesso",
+          description: "Bem-vindo ao Dashboard Logtech",
+        });
+        navigate("/dashboard");
+      }
+    } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Erro no login",
-        description: "Credenciais inválidas",
+        description: error.message || "Credenciais inválidas",
       });
     } finally {
       setIsLoading(false);

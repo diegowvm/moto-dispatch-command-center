@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useLocalizacaoTempoReal } from '@/hooks/useSupabaseData';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -105,7 +106,23 @@ const mockDeliveries: Delivery[] = [
 ];
 
 export const DeliveryMap = () => {
-  const [deliveries, setDeliveries] = useState<Delivery[]>(mockDeliveries);
+  const { data: localizacaoData, isLoading } = useLocalizacaoTempoReal();
+  
+  // Transformar dados do Supabase para o formato esperado
+  const deliveries: Delivery[] = localizacaoData?.map(loc => ({
+    id: loc.entregador_id,
+    name: loc.entregadores?.usuarios?.nome || 'Entregador',
+    phone: '(11) 99999-9999', // TODO: Buscar telefone real
+    status: loc.status as 'disponivel' | 'ocupado' | 'offline',
+    location: {
+      lat: Number(loc.latitude),
+      lng: Number(loc.longitude)
+    },
+    rating: 4.5, // TODO: Buscar avaliação real
+    completedToday: 0 // TODO: Calcular entregas do dia
+  })) || mockDeliveries;
+  
+  const [selectedDelivery, setSelectedDelivery] = useState<Delivery | null>(null);
   const [selectedDelivery, setSelectedDelivery] = useState<Delivery | null>(null);
   const [filter, setFilter] = useState<'todos' | 'disponivel' | 'ocupado' | 'offline'>('todos');
   const [searchTerm, setSearchTerm] = useState('');

@@ -1,6 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { usePedidosMetrics, usePedidos } from "@/hooks/useSupabaseData";
+import { useRealtimeContext } from "@/components/realtime/RealtimeProvider";
 import { 
   Users, 
   Package, 
@@ -52,7 +54,20 @@ const MetricCard = ({
 );
 
 export const Dashboard = () => {
-  const recentOrders = [
+  const { isConnected } = useRealtimeContext();
+  const { data: metrics, isLoading: metricsLoading } = usePedidosMetrics();
+  const { data: pedidos, isLoading: pedidosLoading } = usePedidos();
+
+  // Pegar os 4 pedidos mais recentes
+  const recentOrders = pedidos?.slice(0, 4).map(pedido => ({
+    id: pedido.numero_pedido,
+    empresa: pedido.empresas?.nome_fantasia || 'Empresa',
+    entregador: pedido.entregadores?.usuarios?.nome || 'Não atribuído',
+    status: pedido.status,
+    valor: pedido.valor_total ? `R$ ${pedido.valor_total.toFixed(2)}` : 'R$ 0,00',
+    tempo: new Date(pedido.created_at).toLocaleString('pt-BR')
+  })) || [
+    // Fallback data
     {
       id: "#1234",
       empresa: "TechCorp Ltd",
@@ -87,6 +102,17 @@ export const Dashboard = () => {
     }
   ];
 
+  if (metricsLoading || pedidosLoading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground">Carregando dados...</p>
+        </div>
+      </div>
+    );
+  }
+
   const getStatusBadge = (status: string) => {
     const configs = {
       pendente: { label: "Pendente", variant: "secondary" as const },
@@ -112,10 +138,20 @@ export const Dashboard = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Visão geral das operações de entrega em tempo real
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+            <p className="text-muted-foreground">
+              Visão geral das operações de entrega em tempo real
+            </p>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className={`h-2 w-2 rounded-full ${isConnected ? 'bg-success' : 'bg-destructive'}`}></div>
+            <span className="text-sm text-muted-foreground">
+              {isConnected ? 'Conectado' : 'Desconectado'}
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* Metrics Cards */}
@@ -130,27 +166,27 @@ export const Dashboard = () => {
         />
         <MetricCard
           title="Pedidos Hoje"
-          value="156"
+          value={metrics?.totalHoje.toString() || "0"}
           icon={Package}
           trend="up"
           trendValue="+8% vs ontem"
-          description="134 entregues, 22 pendentes"
+          description={`${metrics?.entreguesHoje || 0} entregues, ${metrics?.pendentes || 0} pendentes`}
         />
         <MetricCard
           title="Receita Hoje"
-          value="R$ 4.892,50"
+          value={`R$ ${(metrics?.receitaHoje || 0).toFixed(2)}`}
           icon={DollarSign}
           trend="up"
           trendValue="+15% vs ontem"
-          description="Taxa média: R$ 31,37"
+          description="Taxa média calculada"
         />
         <MetricCard
-          title="Tempo Médio"
-          value="28 min"
+          title="Em Trânsito"
+          value={metrics?.emTransito.toString() || "0"}
           icon={Clock}
-          trend="down"
-          trendValue="-5% vs ontem"
-          description="Meta: 30 min"
+          trend="up"
+          trendValue="Atualizando..."
+          description="Pedidos em movimento"
         />
       </div>
 
@@ -204,14 +240,14 @@ export const Dashboard = () => {
                 <Truck className="h-4 w-4 text-primary" />
                 <span className="text-sm text-muted-foreground">Em Trânsito</span>
               </div>
-              <span className="font-medium text-foreground">18</span>
+              <span className="font-medium text-foreground">{metrics?.emTransito || 0}</span>
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <Clock className="h-4 w-4 text-warning" />
                 <span className="text-sm text-muted-foreground">Pendentes</span>
               </div>
-              <span className="font-medium text-foreground">4</span>
+              <span className="font-medium text-foreground">{metrics?.pendentes || 0}</span>
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">

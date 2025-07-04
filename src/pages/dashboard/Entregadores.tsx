@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useEntregadores } from "@/hooks/useSupabaseData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -115,7 +116,23 @@ const mockEntregadores: Entregador[] = [
 ];
 
 export const Entregadores = () => {
-  const [entregadores] = useState<Entregador[]>(mockEntregadores);
+  const { data: entregadoresData, isLoading } = useEntregadores();
+  
+  // Transformar dados do Supabase para o formato esperado
+  const entregadores: Entregador[] = entregadoresData?.map(e => ({
+    id: e.id,
+    nome: e.usuarios?.nome || 'Nome não informado',
+    telefone: e.usuarios?.telefone || 'Telefone não informado',
+    email: e.usuarios?.email || 'Email não informado',
+    status: e.status as 'disponivel' | 'ocupado' | 'offline',
+    localizacao: 'São Paulo, SP', // TODO: Implementar localização real
+    avaliacao: e.avaliacao_media || 0,
+    entregasHoje: 0, // TODO: Calcular entregas do dia
+    entregasMes: e.total_entregas || 0,
+    tempoOnline: '0h 00m', // TODO: Calcular tempo online
+    veiculo: `${e.veiculo_tipo} ${e.veiculo_modelo || ''} ${e.veiculo_placa}`.trim(),
+    pedidoAtual: undefined // TODO: Buscar pedido atual se status for 'ocupado'
+  })) || mockEntregadores;
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'todos' | 'disponivel' | 'ocupado' | 'offline'>('todos');
 
@@ -148,6 +165,17 @@ export const Entregadores = () => {
     ocupado: entregadores.filter(e => e.status === 'ocupado').length,
     offline: entregadores.filter(e => e.status === 'offline').length
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Gestão de Entregadores</h1>
+          <p className="text-muted-foreground">Carregando dados...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

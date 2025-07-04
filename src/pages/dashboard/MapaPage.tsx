@@ -1,5 +1,5 @@
-import { DeliveryMap } from "@/components/map/DeliveryMap";
+import { DeliveryTrackingMap } from "@/components/map/DeliveryTrackingMap";
 
 export const MapaPage = () => {
-  return <DeliveryMap />;
+  return <DeliveryTrackingMap height="600px" />;
 };

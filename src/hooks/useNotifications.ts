@@ -1,131 +1,116 @@
 import { useState, useEffect } from 'react';
+import { notificationService } from '@/services/notificationService';
 import { useToast } from '@/hooks/use-toast';
 
-interface NotificationHook {
-  permission: NotificationPermission;
-  requestPermission: () => Promise<NotificationPermission>;
-  showNotification: (title: string, options?: NotificationOptions) => void;
+interface UseNotificationsReturn {
+  isInitialized: boolean;
+  isSubscribed: boolean;
+  userId: string | null;
+  requestPermission: () => Promise<boolean>;
+  subscribe: () => Promise<boolean>;
+  setUserTags: (tags: Record<string, string>) => Promise<void>;
+  isLoading: boolean;
 }
 
-export const useNotifications = (): NotificationHook => {
-  const [permission, setPermission] = useState<NotificationPermission>('default');
+export const useNotifications = (): UseNotificationsReturn => {
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
-    if ('Notification' in window) {
-      setPermission(Notification.permission);
-    }
-  }, []);
+    const initializeNotifications = async () => {
+      try {
+        await notificationService.initialize();
+        setIsInitialized(true);
 
-  const requestPermission = async (): Promise<NotificationPermission> => {
-    if (!('Notification' in window)) {
-      toast({
-        variant: 'destructive',
-        title: 'Notificações não suportadas',
-        description: 'Seu navegador não suporta notificações'
-      });
-      return 'denied';
-    }
+        const subscribed = await notificationService.isSubscribed();
+        setIsSubscribed(subscribed);
 
-    const result = await Notification.requestPermission();
-    setPermission(result);
-    
-    if (result === 'granted') {
-      toast({
-        title: 'Notificações ativadas',
-        description: 'Você receberá notificações sobre atualizações importantes'
-      });
-    }
-    
-    return result;
-  };
-
-  const showNotification = (title: string, options?: NotificationOptions) => {
-    if (permission === 'granted') {
-      new Notification(title, {
-        icon: '/favicon.ico',
-        badge: '/favicon.ico',
-        ...options
-      });
-    } else {
-      // Fallback para toast se não tiver permissão
-      toast({
-        title,
-        description: options?.body
-      });
-    }
-  };
-
-  return {
-    permission,
-    requestPermission,
-    showNotification
-  };
-};
-
-// Hook para notificações do sistema Logtech
-export const useLogtechNotifications = () => {
-  const { showNotification, requestPermission, permission } = useNotifications();
-
-  useEffect(() => {
-    // Solicita permissão automaticamente se ainda não foi determinada
-    if (permission === 'default') {
-      requestPermission();
-    }
-  }, [permission, requestPermission]);
-
-  const notifyNewOrder = (pedidoId: string, empresaNome: string) => {
-    showNotification('Novo Pedido Recebido', {
-      body: `Pedido ${pedidoId} da empresa ${empresaNome}`,
-      tag: 'new-order',
-      requireInteraction: true
-    });
-  };
-
-  const notifyOrderDelivered = (pedidoId: string, entregadorNome: string) => {
-    showNotification('Pedido Entregue', {
-      body: `Pedido ${pedidoId} foi entregue por ${entregadorNome}`,
-      tag: 'order-delivered'
-    });
-  };
-
-  const notifyDeliveryOnline = (entregadorNome: string) => {
-    showNotification('Entregador Online', {
-      body: `${entregadorNome} ficou disponível para entregas`,
-      tag: 'delivery-online'
-    });
-  };
-
-  const notifyDeliveryOffline = (entregadorNome: string) => {
-    showNotification('Entregador Offline', {
-      body: `${entregadorNome} ficou offline`,
-      tag: 'delivery-offline'
-    });
-  };
-
-  const notifyOrderStatusUpdate = (pedidoId: string, status: string) => {
-    const statusMessages = {
-      'enviado': 'foi enviado para coleta',
-      'a_caminho': 'está a caminho do destino',
-      'entregue': 'foi entregue com sucesso',
-      'cancelado': 'foi cancelado'
+        if (subscribed) {
+          const id = await notificationService.getUserId();
+          setUserId(id);
+        }
+      } catch (error) {
+        console.error('Error initializing notifications:', error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    const message = statusMessages[status as keyof typeof statusMessages] || `teve status atualizado para ${status}`;
+    initializeNotifications();
+  }, []);
 
-    showNotification('Status do Pedido Atualizado', {
-      body: `Pedido ${pedidoId} ${message}`,
-      tag: 'order-status'
-    });
+  const requestPermission = async (): Promise<boolean> => {
+    try {
+      const granted = await notificationService.requestPermission();
+      if (granted) {
+        toast({
+          title: 'Notificações ativadas',
+          description: 'Você receberá notificações sobre atualizações importantes.',
+        });
+        setIsSubscribed(true);
+        const id = await notificationService.getUserId();
+        setUserId(id);
+      } else {
+        toast({
+          title: 'Permissão negada',
+          description: 'Você pode ativar as notificações nas configurações do navegador.',
+          variant: 'destructive',
+        });
+      }
+      return granted;
+    } catch (error) {
+      console.error('Error requesting permission:', error);
+      toast({
+        title: 'Erro ao solicitar permissão',
+        description: 'Não foi possível ativar as notificações.',
+        variant: 'destructive',
+      });
+      return false;
+    }
+  };
+
+  const subscribe = async (): Promise<boolean> => {
+    try {
+      const success = await notificationService.subscribeUser();
+      if (success) {
+        setIsSubscribed(true);
+        const id = await notificationService.getUserId();
+        setUserId(id);
+        toast({
+          title: 'Inscrito com sucesso',
+          description: 'Você receberá notificações sobre pedidos e entregas.',
+        });
+      }
+      return success;
+    } catch (error) {
+      console.error('Error subscribing:', error);
+      toast({
+        title: 'Erro na inscrição',
+        description: 'Não foi possível se inscrever para notificações.',
+        variant: 'destructive',
+      });
+      return false;
+    }
+  };
+
+  const setUserTags = async (tags: Record<string, string>): Promise<void> => {
+    try {
+      await notificationService.setUserTags(tags);
+    } catch (error) {
+      console.error('Error setting user tags:', error);
+    }
   };
 
   return {
-    notifyNewOrder,
-    notifyOrderDelivered,
-    notifyDeliveryOnline,
-    notifyDeliveryOffline,
-    notifyOrderStatusUpdate,
+    isInitialized,
+    isSubscribed,
+    userId,
     requestPermission,
-    permission
+    subscribe,
+    setUserTags,
+    isLoading
   };
 };

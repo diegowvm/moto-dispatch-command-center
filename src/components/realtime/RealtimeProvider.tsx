@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useRealtime } from '@/hooks/useRealtime';
-import { useLogtechNotifications } from '@/hooks/useNotifications';
+import { useNotifications } from '@/hooks/useNotifications';
 import { useQueryClient } from '@tanstack/react-query';
 
 interface RealtimeContextType {
@@ -29,13 +29,7 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
     subscribeToLocationUpdates
   } = useRealtime();
 
-  const {
-    notifyNewOrder,
-    notifyOrderDelivered,
-    notifyDeliveryOnline,
-    notifyDeliveryOffline,
-    notifyOrderStatusUpdate
-  } = useLogtechNotifications();
+  const { setUserTags } = useNotifications();
 
   useEffect(() => {
     setConnectionStatus(isConnected ? 'connected' : 'disconnected');
@@ -52,25 +46,8 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
 
       const { eventType, new: newRecord, old: oldRecord } = payload;
 
-      if (eventType === 'INSERT') {
-        // Novo pedido criado
-        notifyNewOrder(
-          newRecord.numero_pedido,
-          'Nova empresa' // Em produção, buscar o nome da empresa
-        );
-      } else if (eventType === 'UPDATE') {
-        // Status do pedido atualizado
-        if (oldRecord.status !== newRecord.status) {
-          notifyOrderStatusUpdate(newRecord.numero_pedido, newRecord.status);
-          
-          if (newRecord.status === 'entregue') {
-            notifyOrderDelivered(
-              newRecord.numero_pedido,
-              'Entregador' // Em produção, buscar o nome do entregador
-            );
-          }
-        }
-      }
+      // TODO: Implement notifications
+      console.log('Order event:', eventType, newRecord);
     });
 
     // Subscrever a atualizações de entregadores
@@ -82,14 +59,8 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
 
       const { eventType, new: newRecord, old: oldRecord } = payload;
 
-      if (eventType === 'UPDATE' && oldRecord.status !== newRecord.status) {
-        // Status do entregador mudou
-        if (newRecord.status === 'disponivel' && oldRecord.status === 'offline') {
-          notifyDeliveryOnline('Entregador'); // Em produção, buscar o nome
-        } else if (newRecord.status === 'offline' && oldRecord.status !== 'offline') {
-          notifyDeliveryOffline('Entregador'); // Em produção, buscar o nome
-        }
-      }
+      // TODO: Implement delivery notifications
+      console.log('Delivery event:', eventType, newRecord);
     });
 
     // Subscrever a atualizações de localização
@@ -108,12 +79,7 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
     subscribeToOrderUpdates,
     subscribeToDeliveryUpdates,
     subscribeToLocationUpdates,
-    queryClient,
-    notifyNewOrder,
-    notifyOrderDelivered,
-    notifyDeliveryOnline,
-    notifyDeliveryOffline,
-    notifyOrderStatusUpdate
+    queryClient
   ]);
 
   return (

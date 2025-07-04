@@ -47,6 +47,11 @@ const mainNavItems = [
     url: "/dashboard/mapa",
     icon: MapPin,
   },
+  {
+    title: "Usuários",
+    url: "/dashboard/usuarios",
+    icon: Settings,
+  },
 ];
 
 const managementItems = [

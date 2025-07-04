@@ -473,6 +473,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["tipo_usuario"]
       }
+      is_current_user_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
     }
     Enums: {
       status_entregador: "disponivel" | "ocupado" | "offline" | "em_entrega"

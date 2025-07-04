@@ -41,6 +41,43 @@ export const LoginForm = () => {
       }
 
       if (data.user) {
+        // Verificar se o usuário é admin
+        const { data: usuario, error: userError } = await supabase
+          .from('usuarios')
+          .select('tipo, status')
+          .eq('auth_user_id', data.user.id)
+          .single();
+
+        if (userError || !usuario) {
+          await supabase.auth.signOut();
+          toast({
+            variant: "destructive",
+            title: "Erro de acesso",
+            description: "Usuário não encontrado no sistema.",
+          });
+          return;
+        }
+
+        if (usuario.tipo !== 'admin') {
+          await supabase.auth.signOut();
+          toast({
+            variant: "destructive",
+            title: "Acesso negado",
+            description: "Apenas administradores podem acessar o dashboard.",
+          });
+          return;
+        }
+
+        if (!usuario.status) {
+          await supabase.auth.signOut();
+          toast({
+            variant: "destructive",
+            title: "Conta inativa",
+            description: "Sua conta está inativa. Entre em contato com o suporte.",
+          });
+          return;
+        }
+
         toast({
           title: "Login realizado com sucesso",
           description: "Bem-vindo ao Dashboard Logtech",

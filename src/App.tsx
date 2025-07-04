@@ -35,8 +35,9 @@ const App = () => {
           <Routes>
             {!isAuthenticated ? (
               <>
+                <Route path="/" element={<Login onLogin={handleLogin} />} />
                 <Route path="/login" element={<Login onLogin={handleLogin} />} />
-                <Route path="*" element={<Navigate to="/login" replace />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
               </>
             ) : (
               <>

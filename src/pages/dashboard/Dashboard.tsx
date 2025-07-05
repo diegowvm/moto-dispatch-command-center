@@ -1,7 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { usePedidosMetrics, usePedidos } from "@/hooks/useSupabaseData";
+import { MetricCard } from "@/components/ui/metric-card";
+import { StatusDistributionChart } from "@/components/charts/StatusDistributionChart";
+import { HourlyDeliveryChart } from "@/components/charts/HourlyDeliveryChart";
+import { DashboardSkeleton } from "@/components/ui/dashboard-skeleton";
+import { useDashboardMetrics, usePedidosRecentes, useEntregasPorHora } from "@/hooks/useDashboardOptimized";
 import { useRealtimeContext } from "@/components/realtime/RealtimeProvider";
 import { 
   Users, 
@@ -11,122 +15,48 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
-  Truck
+  Truck,
+  MapPin,
+  Target
 } from "lucide-react";
 
-const MetricCard = ({ 
-  title, 
-  value, 
-  icon: Icon, 
-  trend, 
-  trendValue, 
-  description 
-}: {
-  title: string;
-  value: string;
-  icon: any;
-  trend?: "up" | "down";
-  trendValue?: string;
-  description?: string;
-}) => (
-  <Card className="bg-card border-border">
-    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-      <CardTitle className="text-sm font-medium text-muted-foreground">
-        {title}
-      </CardTitle>
-      <Icon className="h-4 w-4 text-primary" />
-    </CardHeader>
-    <CardContent>
-      <div className="text-2xl font-bold text-foreground">{value}</div>
-      {trendValue && (
-        <div className={`text-xs flex items-center mt-1 ${
-          trend === "up" ? "text-success" : "text-destructive"
-        }`}>
-          <TrendingUp className="h-3 w-3 mr-1" />
-          {trendValue}
-        </div>
-      )}
-      {description && (
-        <p className="text-xs text-muted-foreground mt-1">{description}</p>
-      )}
-    </CardContent>
-  </Card>
-);
 
 export const Dashboard = () => {
   const { isConnected } = useRealtimeContext();
-  const { data: metrics, isLoading: metricsLoading } = usePedidosMetrics();
-  const { data: pedidos, isLoading: pedidosLoading } = usePedidos();
+  const { data: metrics, isLoading: metricsLoading } = useDashboardMetrics();
+  const { data: pedidosRecentes, isLoading: pedidosLoading } = usePedidosRecentes();
+  const { data: entregasPorHora, isLoading: entregasLoading } = useEntregasPorHora();
 
-  // Pegar os 4 pedidos mais recentes
-  const recentOrders = pedidos?.slice(0, 4).map(pedido => ({
+  // Processar pedidos recentes
+  const recentOrders = pedidosRecentes?.map(pedido => ({
     id: pedido.numero_pedido,
     empresa: pedido.empresas?.nome_fantasia || 'Empresa',
     entregador: pedido.entregadores?.usuarios?.nome || 'Não atribuído',
     status: pedido.status,
     valor: pedido.valor_total ? `R$ ${pedido.valor_total.toFixed(2)}` : 'R$ 0,00',
     tempo: new Date(pedido.created_at).toLocaleString('pt-BR')
-  })) || [
-    // Fallback data
-    {
-      id: "#1234",
-      empresa: "TechCorp Ltd",
-      entregador: "João Silva",
-      status: "em_transito",
-      valor: "R$ 45,90",
-      tempo: "há 15 min"
-    },
-    {
-      id: "#1235",
-      empresa: "FastFood Inc",
-      entregador: "Maria Santos",
-      status: "entregue",
-      valor: "R$ 32,50",
-      tempo: "há 25 min"
-    },
-    {
-      id: "#1236",
-      empresa: "Farmácia Plus",
-      entregador: "Pedro Costa",
-      status: "coletando",
-      valor: "R$ 67,80",
-      tempo: "há 30 min"
-    },
-    {
-      id: "#1237",
-      empresa: "Supermercado XYZ",
-      entregador: "Ana Oliveira",
-      status: "pendente",
-      valor: "R$ 123,45",
-      tempo: "há 45 min"
-    }
-  ];
+  })) || [];
 
-  if (metricsLoading || pedidosLoading) {
-    return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground">Carregando dados...</p>
-        </div>
-      </div>
-    );
+  if (metricsLoading || pedidosLoading || entregasLoading) {
+    return <DashboardSkeleton />;
   }
 
   const getStatusBadge = (status: string) => {
     const configs = {
-      pendente: { label: "Pendente", variant: "secondary" as const },
-      coletando: { label: "Coletando", variant: "default" as const },
-      em_transito: { label: "Em Trânsito", variant: "default" as const },
-      entregue: { label: "Entregue", variant: "default" as const }
+      recebido: { label: "Recebido", variant: "secondary" as const },
+      enviado: { label: "Enviado", variant: "default" as const },
+      a_caminho: { label: "A Caminho", variant: "default" as const },
+      entregue: { label: "Entregue", variant: "default" as const },
+      cancelado: { label: "Cancelado", variant: "destructive" as const }
     };
     
-    const config = configs[status as keyof typeof configs] || configs.pendente;
+    const config = configs[status as keyof typeof configs] || configs.recebido;
     return (
       <Badge variant={config.variant} className={
         status === 'entregue' ? 'bg-success hover:bg-success' :
-        status === 'em_transito' ? 'bg-primary hover:bg-primary' :
-        status === 'coletando' ? 'bg-warning hover:bg-warning text-warning-foreground' :
+        status === 'a_caminho' ? 'bg-primary hover:bg-primary' :
+        status === 'enviado' ? 'bg-accent hover:bg-accent' :
+        status === 'cancelado' ? 'bg-destructive hover:bg-destructive' :
         'bg-secondary hover:bg-secondary'
       }>
         {config.label}
@@ -155,38 +85,55 @@ export const Dashboard = () => {
       </div>
 
       {/* Metrics Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <MetricCard
-          title="Entregadores Online"
-          value="24"
+          title="Entregadores Disponíveis"
+          value={metrics?.entregadoresDisponiveis || 0}
           icon={Users}
-          trend="up"
-          trendValue="+12% hoje"
-          description="6 disponíveis, 18 em entrega"
+          trend="neutral"
+          description={`${metrics?.entregadoresOcupados || 0} ocupados de ${metrics?.totalEntregadores || 0} total`}
         />
         <MetricCard
           title="Pedidos Hoje"
-          value={metrics?.totalHoje.toString() || "0"}
+          value={metrics?.totalHoje || 0}
           icon={Package}
           trend="up"
           trendValue="+8% vs ontem"
-          description={`${metrics?.entreguesHoje || 0} entregues, ${metrics?.pendentes || 0} pendentes`}
+          description={`${metrics?.entreguesHoje || 0} entregues`}
         />
         <MetricCard
-          title="Receita Hoje"
+          title="Em Andamento"
+          value={metrics?.emAndamento || 0}
+          icon={Truck}
+          trend="neutral"
+          description="Enviados e a caminho"
+        />
+        <MetricCard
+          title="Pendentes"
+          value={metrics?.pendentes || 0}
+          icon={Clock}
+          trend="down"
+          description="Aguardando coleta"
+        />
+        <MetricCard
+          title="Faturamento Hoje"
           value={`R$ ${(metrics?.receitaHoje || 0).toFixed(2)}`}
           icon={DollarSign}
           trend="up"
           trendValue="+15% vs ontem"
-          description="Taxa média calculada"
+          description="Pedidos entregues"
         />
-        <MetricCard
-          title="Em Trânsito"
-          value={metrics?.emTransito.toString() || "0"}
-          icon={Clock}
-          trend="up"
-          trendValue="Atualizando..."
-          description="Pedidos em movimento"
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <StatusDistributionChart 
+          data={metrics?.statusDistribution || []} 
+          loading={metricsLoading}
+        />
+        <HourlyDeliveryChart 
+          data={entregasPorHora || []} 
+          loading={entregasLoading}
         />
       </div>
 
@@ -238,9 +185,9 @@ export const Dashboard = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <Truck className="h-4 w-4 text-primary" />
-                <span className="text-sm text-muted-foreground">Em Trânsito</span>
+                <span className="text-sm text-muted-foreground">Em Andamento</span>
               </div>
-              <span className="font-medium text-foreground">{metrics?.emTransito || 0}</span>
+              <span className="font-medium text-foreground">{metrics?.emAndamento || 0}</span>
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">

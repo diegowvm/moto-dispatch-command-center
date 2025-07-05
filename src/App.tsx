@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { RealtimeProvider } from "@/components/realtime/RealtimeProvider";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { Login } from "./pages/Login";
 import { AcessoNegado } from "./pages/AcessoNegado";
 import { DashboardLayout } from "./components/layout/DashboardLayout";
@@ -18,7 +19,15 @@ import { PedidoDetalhes } from "./pages/dashboard/PedidoDetalhes";
 import NotFound from "./pages/NotFound";
 import { useAuth } from "@/hooks/useAuth";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutos
+      refetchOnWindowFocus: false,
+      retry: 2,
+    },
+  },
+});
 
 const AppContent = () => {
   const { user, loading, signOut } = useAuth();
@@ -35,10 +44,11 @@ const AppContent = () => {
   }
 
   return (
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
+    <ErrorBoundary>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
         <Routes>
           {!user ? (
             <>
@@ -72,6 +82,7 @@ const AppContent = () => {
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
+    </ErrorBoundary>
   );
 };
 

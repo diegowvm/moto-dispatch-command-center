@@ -7,7 +7,8 @@ import { RealtimeProvider } from "@/components/realtime/RealtimeProvider";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
-import { QueryErrorBoundary } from "@/components/ui/query-error-boundary";
+import { AdvancedErrorBoundary } from '@/components/error/AdvancedErrorBoundary';
+import PerformancePage from "@/pages/dashboard/PerformancePage";
 import { ProgressiveLoader, useLazyWithRetry } from "@/components/ui/progressive-loader";
 import { DashboardSkeleton } from "@/components/ui/dashboard-skeleton";
 import { useAuth } from "@/hooks/useAuth";
@@ -18,13 +19,11 @@ const AcessoNegado = useLazyWithRetry(() => import("./pages/AcessoNegado"));
 const DashboardLayout = useLazyWithRetry(() => import("./components/layout/DashboardLayout"));
 const Dashboard = useLazyWithRetry(() => import("./pages/dashboard/Dashboard"));
 const Entregadores = useLazyWithRetry(() => import("./pages/dashboard/Entregadores"));
-const MapaPage = useLazyWithRetry(() => import("./pages/dashboard/MapaPage"));
 const GerenciamentoUsuarios = useLazyWithRetry(() => import("./pages/dashboard/GerenciamentoUsuarios"));
 const Pedidos = useLazyWithRetry(() => import("./pages/dashboard/Pedidos"));
 const PedidoDetalhes = useLazyWithRetry(() => import("./pages/dashboard/PedidoDetalhes"));
-const NotFound = useLazyWithRetry(() => import("./pages/NotFound"));
 
-const queryClient = new QueryClient({
+const NotFound = useLazyWithRetry(() => import("./pages/NotFound"));
   defaultOptions: {
     queries: {
       staleTime: 10 * 60 * 1000, // 10 minutos

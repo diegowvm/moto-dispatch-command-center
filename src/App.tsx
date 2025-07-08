@@ -8,6 +8,7 @@ import { AuthProvider } from "@/components/auth/AuthProvider";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { AdvancedErrorBoundary } from '@/components/error/AdvancedErrorBoundary';
+import { QueryErrorBoundary } from '@/components/error/QueryErrorBoundary';
 import PerformancePage from "@/pages/dashboard/PerformancePage";
 import { ProgressiveLoader, useLazyWithRetry } from "@/components/ui/progressive-loader";
 import { DashboardSkeleton } from "@/components/ui/dashboard-skeleton";
@@ -22,8 +23,10 @@ const Entregadores = useLazyWithRetry(() => import("./pages/dashboard/Entregador
 const GerenciamentoUsuarios = useLazyWithRetry(() => import("./pages/dashboard/GerenciamentoUsuarios"));
 const Pedidos = useLazyWithRetry(() => import("./pages/dashboard/Pedidos"));
 const PedidoDetalhes = useLazyWithRetry(() => import("./pages/dashboard/PedidoDetalhes"));
-
+const MapaPage = useLazyWithRetry(() => import("./pages/dashboard/MapaPage"));
 const NotFound = useLazyWithRetry(() => import("./pages/NotFound"));
+
+const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 10 * 60 * 1000, // 10 minutos

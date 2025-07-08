@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { useRealtime } from '@/hooks/useRealtime';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useQueryClient } from '@tanstack/react-query';
@@ -30,56 +30,61 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
   } = useRealtime();
 
   const { setUserTags } = useNotifications();
+  const invalidationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     setConnectionStatus(isConnected ? 'connected' : 'disconnected');
   }, [isConnected]);
+
+  // Debounced invalidation para evitar muitas atualizações
+  const debouncedInvalidateQueries = useCallback((queryKeys: string[]) => {
+    if (invalidationTimeoutRef.current) {
+      clearTimeout(invalidationTimeoutRef.current);
+    }
+    
+    invalidationTimeoutRef.current = setTimeout(() => {
+      queryKeys.forEach(key => {
+        queryClient.invalidateQueries({ queryKey: [key] });
+      });
+    }, 1000); // Debounce de 1 segundo
+  }, [queryClient]);
 
   useEffect(() => {
     // Subscrever a atualizações de pedidos
     const orderChannel = subscribeToOrderUpdates((payload) => {
       console.log('Atualização de pedido:', payload);
       
-      // Invalidar queries relacionadas a pedidos
-      queryClient.invalidateQueries({ queryKey: ['pedidos'] });
-      queryClient.invalidateQueries({ queryKey: ['pedidos-metrics'] });
-
-      const { eventType, new: newRecord, old: oldRecord } = payload;
-
-      // TODO: Implement notifications
-      console.log('Order event:', eventType, newRecord);
+      // Invalidar queries relacionadas a pedidos (debounced)
+      debouncedInvalidateQueries(['pedidos', 'pedidos-metrics', 'dashboard-metrics', 'pedidos-recentes']);
     });
 
     // Subscrever a atualizações de entregadores
     const deliveryChannel = subscribeToDeliveryUpdates((payload) => {
       console.log('Atualização de entregador:', payload);
       
-      // Invalidar queries relacionadas a entregadores
-      queryClient.invalidateQueries({ queryKey: ['entregadores'] });
-
-      const { eventType, new: newRecord, old: oldRecord } = payload;
-
-      // TODO: Implement delivery notifications
-      console.log('Delivery event:', eventType, newRecord);
+      // Invalidar queries relacionadas a entregadores (debounced)
+      debouncedInvalidateQueries(['entregadores', 'dashboard-metrics']);
     });
 
     // Subscrever a atualizações de localização
     const locationChannel = subscribeToLocationUpdates((payload) => {
       console.log('Atualização de localização:', payload);
       
-      // Invalidar queries de localização
-      queryClient.invalidateQueries({ queryKey: ['localizacao-tempo-real'] });
+      // Invalidar queries de localização (debounced)
+      debouncedInvalidateQueries(['localizacao-tempo-real']);
     });
 
     // Cleanup
     return () => {
-      // Os canais são automaticamente limpos pelo hook useRealtime
+      if (invalidationTimeoutRef.current) {
+        clearTimeout(invalidationTimeoutRef.current);
+      }
     };
   }, [
     subscribeToOrderUpdates,
     subscribeToDeliveryUpdates,
     subscribeToLocationUpdates,
-    queryClient
+    debouncedInvalidateQueries
   ]);
 
   return (

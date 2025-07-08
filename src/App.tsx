@@ -7,6 +7,7 @@ import { RealtimeProvider } from "@/components/realtime/RealtimeProvider";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
+import { QueryErrorBoundary } from "@/components/ui/query-error-boundary";
 import { ProgressiveLoader, useLazyWithRetry } from "@/components/ui/progressive-loader";
 import { DashboardSkeleton } from "@/components/ui/dashboard-skeleton";
 import { useAuth } from "@/hooks/useAuth";
@@ -26,9 +27,19 @@ const NotFound = useLazyWithRetry(() => import("./pages/NotFound"));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutos
+      staleTime: 10 * 60 * 1000, // 10 minutos
       refetchOnWindowFocus: false,
-      retry: 2,
+      retry: (failureCount, error) => {
+        // Não retry em erros 403/404
+        if (error?.message?.includes('403') || error?.message?.includes('404')) {
+          return false;
+        }
+        return failureCount < 2;
+      },
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
+    },
+    mutations: {
+      retry: 1,
     },
   },
 });
@@ -52,7 +63,8 @@ const AppContent = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter>
+        <QueryErrorBoundary>
+          <BrowserRouter>
         <Routes>
           {!user ? (
             <>
@@ -138,7 +150,8 @@ const AppContent = () => {
             </>
           )}
         </Routes>
-      </BrowserRouter>
+        </BrowserRouter>
+      </QueryErrorBoundary>
     </TooltipProvider>
     </ErrorBoundary>
   );

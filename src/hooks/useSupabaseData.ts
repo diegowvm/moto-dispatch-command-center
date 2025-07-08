@@ -90,50 +90,55 @@ export const usePedidosMetrics = () => {
     queryFn: async () => {
       const today = new Date().toISOString().split('T')[0];
       
-      // Total de pedidos hoje
-      const { count: totalHoje } = await supabase
-        .from('pedidos')
-        .select('*', { count: 'exact' })
-        .gte('created_at', `${today}T00:00:00.000Z`);
+      // Executar todas as queries em paralelo para melhor performance
+      const [
+        totalHojeResult,
+        entreguesHojeResult,
+        pendentesResult,
+        emTransitoResult,
+        receitaResult
+      ] = await Promise.all([
+        supabase
+          .from('pedidos')
+          .select('*', { count: 'exact' })
+          .gte('created_at', `${today}T00:00:00.000Z`),
+        
+        supabase
+          .from('pedidos')
+          .select('*', { count: 'exact' })
+          .eq('status', 'entregue')
+          .gte('data_finalizacao', `${today}T00:00:00.000Z`),
+        
+        supabase
+          .from('pedidos')
+          .select('*', { count: 'exact' })
+          .eq('status', 'recebido'),
+        
+        supabase
+          .from('pedidos')
+          .select('*', { count: 'exact' })
+          .in('status', ['enviado', 'a_caminho']),
+        
+        supabase
+          .from('pedidos')
+          .select('valor_total')
+          .eq('status', 'entregue')
+          .gte('data_finalizacao', `${today}T00:00:00.000Z`)
+      ]);
 
-      // Pedidos entregues hoje
-      const { count: entreguesHoje } = await supabase
-        .from('pedidos')
-        .select('*', { count: 'exact' })
-        .eq('status', 'entregue')
-        .gte('data_finalizacao', `${today}T00:00:00.000Z`);
-
-      // Pedidos pendentes
-      const { count: pendentes } = await supabase
-        .from('pedidos')
-        .select('*', { count: 'exact' })
-        .eq('status', 'recebido');
-
-      // Pedidos em trânsito
-      const { count: emTransito } = await supabase
-        .from('pedidos')
-        .select('*', { count: 'exact' })
-        .in('status', ['enviado', 'a_caminho']);
-
-      // Receita hoje
-      const { data: receitaData } = await supabase
-        .from('pedidos')
-        .select('valor_total')
-        .eq('status', 'entregue')
-        .gte('data_finalizacao', `${today}T00:00:00.000Z`);
-
-      const receitaHoje = receitaData?.reduce((sum, pedido) => 
+      const receitaHoje = receitaResult.data?.reduce((sum, pedido) => 
         sum + (pedido.valor_total || 0), 0) || 0;
 
       return {
-        totalHoje: totalHoje || 0,
-        entreguesHoje: entreguesHoje || 0,
-        pendentes: pendentes || 0,
-        emTransito: emTransito || 0,
+        totalHoje: totalHojeResult.count || 0,
+        entreguesHoje: entreguesHojeResult.count || 0,
+        pendentes: pendentesResult.count || 0,
+        emTransito: emTransitoResult.count || 0,
         receitaHoje
       };
     },
-    refetchInterval: 30000 // Atualiza a cada 30 segundos
+    staleTime: 10 * 60 * 1000, // 10 minutos
+    refetchInterval: 2 * 60 * 1000 // 2 minutos
   });
 };
 
@@ -156,7 +161,8 @@ export const useLocalizacaoTempoReal = () => {
       if (error) throw error;
       return data;
     },
-    refetchInterval: 10000 // Atualiza a cada 10 segundos
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    refetchInterval: 30000 // 30 segundos
   });
 };
 

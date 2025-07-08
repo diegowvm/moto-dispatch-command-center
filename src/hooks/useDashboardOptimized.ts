@@ -101,8 +101,8 @@ export const useDashboardMetrics = () => {
         ].filter(item => item.value > 0)
       };
     },
-    staleTime: 5 * 60 * 1000, // 5 minutos
-    refetchInterval: 60000, // 1 minuto (reduzido de 30s)
+    staleTime: 10 * 60 * 1000, // 10 minutos
+    refetchInterval: 2 * 60 * 1000, // 2 minutos
   });
 };
 
@@ -130,8 +130,8 @@ export const usePedidosRecentes = () => {
       if (error) throw error;
       return data;
     },
-    staleTime: 2 * 60 * 1000, // 2 minutos
-    refetchInterval: 30000, // 30 segundos
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    refetchInterval: 60000, // 1 minuto
   });
 };
 

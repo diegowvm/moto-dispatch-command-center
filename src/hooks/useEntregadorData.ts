@@ -2,22 +2,15 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 // Hook para buscar entregadores disponíveis
+// DEPRECADO: Use useUnifiedDashboard.entregadoresDisponiveis
 export const useEntregadoresDisponiveis = () => {
   return useQuery({
-    queryKey: ['entregadores-disponiveis'],
+    queryKey: ['entregadores-disponiveis-legacy'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('entregadores')
-        .select(`
-          *,
-          usuarios!inner(id, nome, email, telefone)
-        `)
-        .eq('status', 'disponivel')
-        .order('avaliacao_media', { ascending: false });
-      
-      if (error) throw error;
-      return data;
+      console.warn('DEPRECADO: useEntregadoresDisponiveis incluído em useUnifiedDashboard');
+      return [];
     },
-    refetchInterval: 30000 // Atualiza a cada 30 segundos
+    staleTime: 30 * 60 * 1000,
+    enabled: false,
   });
 };

@@ -5,7 +5,7 @@ import { MetricCard } from "@/components/ui/metric-card";
 import { StatusDistributionChart } from "@/components/charts/StatusDistributionChart";
 import { HourlyDeliveryChart } from "@/components/charts/HourlyDeliveryChart";
 import { DashboardSkeleton } from "@/components/ui/dashboard-skeleton";
-import { useDashboardMetrics, usePedidosRecentes, useEntregasPorHora } from "@/hooks/useDashboardOptimized";
+import { useUnifiedDashboard } from "@/hooks/useUnifiedDashboard";
 import { useRealtimeContext } from "@/components/realtime/RealtimeProvider";
 import { 
   Users, 
@@ -23,12 +23,11 @@ import {
 
 const Dashboard = () => {
   const { isConnected } = useRealtimeContext();
-  const { data: metrics, isLoading: metricsLoading } = useDashboardMetrics();
-  const { data: pedidosRecentes, isLoading: pedidosLoading } = usePedidosRecentes();
-  const { data: entregasPorHora, isLoading: entregasLoading } = useEntregasPorHora();
+  const { data: dashboardData, isLoading } = useUnifiedDashboard();
 
-  // Processar pedidos recentes
-  const recentOrders = pedidosRecentes?.map(pedido => ({
+  // Processar dados unificados
+  const metrics = dashboardData?.metrics;
+  const recentOrders = dashboardData?.pedidosRecentes?.map(pedido => ({
     id: pedido.numero_pedido,
     empresa: pedido.empresas?.nome_fantasia || 'Empresa',
     entregador: pedido.entregadores?.usuarios?.nome || 'Não atribuído',
@@ -37,7 +36,7 @@ const Dashboard = () => {
     tempo: new Date(pedido.created_at).toLocaleString('pt-BR')
   })) || [];
 
-  if (metricsLoading || pedidosLoading || entregasLoading) {
+  if (isLoading) {
     return <DashboardSkeleton />;
   }
 
@@ -128,12 +127,12 @@ const Dashboard = () => {
       {/* Charts Section */}
       <div className="grid gap-4 md:grid-cols-2">
         <StatusDistributionChart 
-          data={metrics?.statusDistribution || []} 
-          loading={metricsLoading}
+          data={dashboardData?.statusDistribution || []} 
+          loading={isLoading}
         />
         <HourlyDeliveryChart 
-          data={entregasPorHora || []} 
-          loading={entregasLoading}
+          data={dashboardData?.entregasPorHora || []} 
+          loading={isLoading}
         />
       </div>
 

@@ -84,89 +84,41 @@ export const usePedidos = (filters?: { status?: string; empresa_id?: string; sea
   });
 };
 
+// DEPRECADO: Use useUnifiedDashboard.metrics para performance otimizada
 export const usePedidosMetrics = () => {
   return useQuery({
-    queryKey: ['pedidos-metrics'],
+    queryKey: ['pedidos-metrics-legacy'],
     queryFn: async () => {
-      const today = new Date().toISOString().split('T')[0];
-      
-      // Executar todas as queries em paralelo para melhor performance
-      const [
-        totalHojeResult,
-        entreguesHojeResult,
-        pendentesResult,
-        emTransitoResult,
-        receitaResult
-      ] = await Promise.all([
-        supabase
-          .from('pedidos')
-          .select('*', { count: 'exact' })
-          .gte('created_at', `${today}T00:00:00.000Z`),
-        
-        supabase
-          .from('pedidos')
-          .select('*', { count: 'exact' })
-          .eq('status', 'entregue')
-          .gte('data_finalizacao', `${today}T00:00:00.000Z`),
-        
-        supabase
-          .from('pedidos')
-          .select('*', { count: 'exact' })
-          .eq('status', 'recebido'),
-        
-        supabase
-          .from('pedidos')
-          .select('*', { count: 'exact' })
-          .in('status', ['enviado', 'a_caminho']),
-        
-        supabase
-          .from('pedidos')
-          .select('valor_total')
-          .eq('status', 'entregue')
-          .gte('data_finalizacao', `${today}T00:00:00.000Z`)
-      ]);
-
-      const receitaHoje = receitaResult.data?.reduce((sum, pedido) => 
-        sum + (pedido.valor_total || 0), 0) || 0;
-
+      console.warn('DEPRECADO: usePedidosMetrics substituído por useUnifiedDashboard');
       return {
-        totalHoje: totalHojeResult.count || 0,
-        entreguesHoje: entreguesHojeResult.count || 0,
-        pendentes: pendentesResult.count || 0,
-        emTransito: emTransitoResult.count || 0,
-        receitaHoje
+        totalHoje: 0,
+        entreguesHoje: 0,
+        pendentes: 0,
+        emTransito: 0,
+        receitaHoje: 0
       };
     },
-    staleTime: 10 * 60 * 1000, // 10 minutos
-    refetchInterval: 2 * 60 * 1000 // 2 minutos
+    staleTime: 30 * 60 * 1000,
+    enabled: false,
   });
 };
 
 // Localização em tempo real
+// DEPRECADO: Use useUnifiedDashboard.localizacaoTempoReal ou useLocalizacaoTempoReal do useUnifiedDashboard
 export const useLocalizacaoTempoReal = () => {
   return useQuery({
-    queryKey: ['localizacao-tempo-real'],
+    queryKey: ['localizacao-tempo-real-legacy'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('localizacao_tempo_real')
-        .select(`
-          *,
-          entregadores!inner(
-            id,
-            usuarios!inner(nome)
-          )
-        `)
-        .order('timestamp', { ascending: false });
-      
-      if (error) throw error;
-      return data;
+      console.warn('DEPRECADO: useLocalizacaoTempoReal incluído em useUnifiedDashboard');
+      return [];
     },
-    staleTime: 5 * 60 * 1000, // 5 minutos
-    refetchInterval: 30000 // 30 segundos
+    staleTime: 30 * 60 * 1000,
+    enabled: false,
   });
 };
 
 // Empresas
+// Empresas otimizadas - movidas para useUnifiedDashboard
 export const useEmpresas = () => {
   return useQuery({
     queryKey: ['empresas'],
@@ -178,7 +130,8 @@ export const useEmpresas = () => {
       
       if (error) throw error;
       return data;
-    }
+    },
+    staleTime: 30 * 60 * 1000, // TTL de 30 minutos - dados estáticos
   });
 };
 
@@ -199,6 +152,7 @@ export const useUpdateEntregadorStatus = () => {
       return data;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['unified-dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['entregadores'] });
     }
   });
@@ -235,8 +189,8 @@ export const useUpdatePedidoStatus = () => {
       return data;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['unified-dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['pedidos'] });
-      queryClient.invalidateQueries({ queryKey: ['pedidos-metrics'] });
     }
   });
 };
@@ -272,6 +226,7 @@ export const useUpdateLocalizacao = () => {
       return data;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['unified-dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['localizacao-tempo-real'] });
     }
   });

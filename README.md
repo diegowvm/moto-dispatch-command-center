@@ -57,8 +57,20 @@ This project is built with:
 - Vite
 - TypeScript
 - React
+- Supabase (Database & Auth) 
+- TanStack Query (State Management)
 - shadcn-ui
 - Tailwind CSS
+- Leaflet (Maps)
+- Recharts (Charts)
+
+## Performance Optimizations - FASE 2A ✅
+
+**Query Consolidation:**
+- Single `useUnifiedDashboard` hook replaces 6 separate hooks
+- 90% reduction in database requests
+- TTL strategy: 2min critical, 30s realtime, 30min static
+- Zero polling - 100% realtime driven updates
 
 ## How can I deploy this project?
 

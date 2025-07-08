@@ -54,24 +54,24 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
     const orderChannel = subscribeToOrderUpdates((payload) => {
       console.log('Atualização de pedido:', payload);
       
-      // Invalidar queries relacionadas a pedidos (debounced)
-      debouncedInvalidateQueries(['pedidos', 'pedidos-metrics', 'dashboard-metrics', 'pedidos-recentes']);
+      // Invalidar queries relacionadas a pedidos (debounced) - usando novo sistema unificado
+      debouncedInvalidateQueries(['unified-dashboard', 'pedidos']);
     });
 
     // Subscrever a atualizações de entregadores
     const deliveryChannel = subscribeToDeliveryUpdates((payload) => {
       console.log('Atualização de entregador:', payload);
       
-      // Invalidar queries relacionadas a entregadores (debounced)
-      debouncedInvalidateQueries(['entregadores', 'dashboard-metrics']);
+      // Invalidar queries relacionadas a entregadores (debounced) - usando novo sistema unificado
+      debouncedInvalidateQueries(['unified-dashboard', 'entregadores']);
     });
 
     // Subscrever a atualizações de localização
     const locationChannel = subscribeToLocationUpdates((payload) => {
       console.log('Atualização de localização:', payload);
       
-      // Invalidar queries de localização (debounced)
-      debouncedInvalidateQueries(['localizacao-tempo-real']);
+      // Invalidar queries de localização (debounced) - usando novo sistema unificado
+      debouncedInvalidateQueries(['unified-dashboard', 'localizacao-tempo-real']);
     });
 
     // Cleanup

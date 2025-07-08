@@ -23,7 +23,7 @@ interface NovoUsuario {
   telefone?: string;
 }
 
-export const GerenciamentoUsuarios = () => {
+const GerenciamentoUsuarios = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState<Usuario | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);

@@ -13,7 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import { StatusBadge } from '@/components/pedidos/StatusBadge';
 import { PedidoFilters } from '@/components/pedidos/PedidoFilters';
 
-export const Pedidos = () => {
+const Pedidos = () => {
   const navigate = useNavigate();
   const [filters, setFilters] = useState({
     status: '',

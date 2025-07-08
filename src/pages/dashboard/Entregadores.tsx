@@ -115,7 +115,7 @@ const mockEntregadores: Entregador[] = [
   }
 ];
 
-export const Entregadores = () => {
+const Entregadores = () => {
   const { data: entregadoresData, isLoading } = useEntregadores();
   
   // Transformar dados do Supabase para o formato esperado

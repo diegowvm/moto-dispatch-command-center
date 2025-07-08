@@ -14,7 +14,7 @@ import { PedidoMap } from '@/components/map/PedidoMap';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
-export const PedidoDetalhes = () => {
+const PedidoDetalhes = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [showEntregadorSelector, setShowEntregadorSelector] = useState(false);

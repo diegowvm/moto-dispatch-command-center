@@ -8,7 +8,7 @@ interface DashboardLayoutProps {
   onLogout: () => void;
 }
 
-export const DashboardLayout = ({ onLogout }: DashboardLayoutProps) => {
+const DashboardLayout = ({ onLogout }: DashboardLayoutProps) => {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
@@ -25,3 +25,5 @@ export const DashboardLayout = ({ onLogout }: DashboardLayoutProps) => {
     </SidebarProvider>
   );
 };
+
+export default DashboardLayout;

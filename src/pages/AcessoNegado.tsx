@@ -4,7 +4,7 @@ import { ShieldX, Home, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 
-export const AcessoNegado = () => {
+const AcessoNegado = () => {
   const { usuario, signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -68,3 +68,5 @@ export const AcessoNegado = () => {
     </div>
   );
 };
+
+export default AcessoNegado;

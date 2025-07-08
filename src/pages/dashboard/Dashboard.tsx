@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 
 
-export const Dashboard = () => {
+const Dashboard = () => {
   const { isConnected } = useRealtimeContext();
   const { data: metrics, isLoading: metricsLoading } = useDashboardMetrics();
   const { data: pedidosRecentes, isLoading: pedidosLoading } = usePedidosRecentes();
@@ -268,3 +268,5 @@ export const Dashboard = () => {
     </div>
   );
 };
+
+export default Dashboard;

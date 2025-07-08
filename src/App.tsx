@@ -7,17 +7,21 @@ import { RealtimeProvider } from "@/components/realtime/RealtimeProvider";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
-import { Login } from "./pages/Login";
-import { AcessoNegado } from "./pages/AcessoNegado";
-import { DashboardLayout } from "./components/layout/DashboardLayout";
-import { Dashboard } from "./pages/dashboard/Dashboard";
-import { Entregadores } from "./pages/dashboard/Entregadores";
-import { MapaPage } from "./pages/dashboard/MapaPage";
-import { GerenciamentoUsuarios } from "./pages/dashboard/GerenciamentoUsuarios";
-import { Pedidos } from "./pages/dashboard/Pedidos";
-import { PedidoDetalhes } from "./pages/dashboard/PedidoDetalhes";
-import NotFound from "./pages/NotFound";
+import { ProgressiveLoader, useLazyWithRetry } from "@/components/ui/progressive-loader";
+import { DashboardSkeleton } from "@/components/ui/dashboard-skeleton";
 import { useAuth } from "@/hooks/useAuth";
+
+// Lazy loading das páginas
+const Login = useLazyWithRetry(() => import("./pages/Login"));
+const AcessoNegado = useLazyWithRetry(() => import("./pages/AcessoNegado"));
+const DashboardLayout = useLazyWithRetry(() => import("./components/layout/DashboardLayout"));
+const Dashboard = useLazyWithRetry(() => import("./pages/dashboard/Dashboard"));
+const Entregadores = useLazyWithRetry(() => import("./pages/dashboard/Entregadores"));
+const MapaPage = useLazyWithRetry(() => import("./pages/dashboard/MapaPage"));
+const GerenciamentoUsuarios = useLazyWithRetry(() => import("./pages/dashboard/GerenciamentoUsuarios"));
+const Pedidos = useLazyWithRetry(() => import("./pages/dashboard/Pedidos"));
+const PedidoDetalhes = useLazyWithRetry(() => import("./pages/dashboard/PedidoDetalhes"));
+const NotFound = useLazyWithRetry(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -52,31 +56,85 @@ const AppContent = () => {
         <Routes>
           {!user ? (
             <>
-              <Route path="/" element={<Login />} />
-              <Route path="/login" element={<Login />} />
+              <Route path="/" element={
+                <ProgressiveLoader>
+                  <Login />
+                </ProgressiveLoader>
+              } />
+              <Route path="/login" element={
+                <ProgressiveLoader>
+                  <Login />
+                </ProgressiveLoader>
+              } />
               <Route path="*" element={<Navigate to="/login" replace />} />
             </>
           ) : (
             <>
-              <Route path="/acesso-negado" element={<AcessoNegado />} />
+              <Route path="/acesso-negado" element={
+                <ProgressiveLoader>
+                  <AcessoNegado />
+                </ProgressiveLoader>
+              } />
               <Route path="/dashboard" element={
                 <ProtectedRoute requireAdmin>
-                  <DashboardLayout onLogout={signOut} />
+                  <ProgressiveLoader fallback={<DashboardSkeleton />}>
+                    <DashboardLayout onLogout={signOut} />
+                  </ProgressiveLoader>
                 </ProtectedRoute>
               }>
-                <Route index element={<Dashboard />} />
-                <Route path="entregadores" element={<Entregadores />} />
-                <Route path="mapa" element={<MapaPage />} />
-                <Route path="usuarios" element={<GerenciamentoUsuarios />} />
-                <Route path="pedidos" element={<Pedidos />} />
-                <Route path="pedidos/:id" element={<PedidoDetalhes />} />
-                <Route path="financeiro" element={<div className="p-6"><h1 className="text-2xl font-bold">Financeiro - Em desenvolvimento</h1></div>} />
-                <Route path="suporte" element={<div className="p-6"><h1 className="text-2xl font-bold">Suporte - Em desenvolvimento</h1></div>} />
-                <Route path="notificacoes" element={<div className="p-6"><h1 className="text-2xl font-bold">Notificações - Em desenvolvimento</h1></div>} />
+                <Route index element={
+                  <ProgressiveLoader fallback={<DashboardSkeleton />}>
+                    <Dashboard />
+                  </ProgressiveLoader>
+                } />
+                <Route path="entregadores" element={
+                  <ProgressiveLoader>
+                    <Entregadores />
+                  </ProgressiveLoader>
+                } />
+                <Route path="mapa" element={
+                  <ProgressiveLoader>
+                    <MapaPage />
+                  </ProgressiveLoader>
+                } />
+                <Route path="usuarios" element={
+                  <ProgressiveLoader>
+                    <GerenciamentoUsuarios />
+                  </ProgressiveLoader>
+                } />
+                <Route path="pedidos" element={
+                  <ProgressiveLoader>
+                    <Pedidos />
+                  </ProgressiveLoader>
+                } />
+                <Route path="pedidos/:id" element={
+                  <ProgressiveLoader>
+                    <PedidoDetalhes />
+                  </ProgressiveLoader>
+                } />
+                <Route path="financeiro" element={
+                  <ProgressiveLoader>
+                    <div className="p-6"><h1 className="text-2xl font-bold">Financeiro - Em desenvolvimento</h1></div>
+                  </ProgressiveLoader>
+                } />
+                <Route path="suporte" element={
+                  <ProgressiveLoader>
+                    <div className="p-6"><h1 className="text-2xl font-bold">Suporte - Em desenvolvimento</h1></div>
+                  </ProgressiveLoader>
+                } />
+                <Route path="notificacoes" element={
+                  <ProgressiveLoader>
+                    <div className="p-6"><h1 className="text-2xl font-bold">Notificações - Em desenvolvimento</h1></div>
+                  </ProgressiveLoader>
+                } />
               </Route>
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/login" element={<Navigate to="/dashboard" replace />} />
-              <Route path="*" element={<NotFound />} />
+              <Route path="*" element={
+                <ProgressiveLoader>
+                  <NotFound />
+                </ProgressiveLoader>
+              } />
             </>
           )}
         </Routes>

@@ -1,5 +1,5 @@
-import { DeliveryTrackingMap } from "@/components/map/DeliveryTrackingMap";
+import { LazyDeliveryTrackingMap } from "@/components/map/LazyDeliveryTrackingMap";
 
 const MapaPage = () => {
-  return <DeliveryTrackingMap height="600px" />;
+  return <LazyDeliveryTrackingMap height="600px" />;
 };

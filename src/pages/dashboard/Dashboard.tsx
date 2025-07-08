@@ -2,8 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { MetricCard } from "@/components/ui/metric-card";
-import { StatusDistributionChart } from "@/components/charts/StatusDistributionChart";
-import { HourlyDeliveryChart } from "@/components/charts/HourlyDeliveryChart";
+import { LazyStatusDistributionChart } from "@/components/charts/LazyStatusDistributionChart";
+import { LazyHourlyDeliveryChart } from "@/components/charts/LazyHourlyDeliveryChart";
 import { DashboardSkeleton } from "@/components/ui/dashboard-skeleton";
 import { useUnifiedDashboard } from "@/hooks/useUnifiedDashboard";
 import { useRealtimeContext } from "@/components/realtime/RealtimeProvider";
@@ -126,11 +126,11 @@ const Dashboard = () => {
 
       {/* Charts Section */}
       <div className="grid gap-4 md:grid-cols-2">
-        <StatusDistributionChart 
+        <LazyStatusDistributionChart 
           data={dashboardData?.statusDistribution || []} 
           loading={isLoading}
         />
-        <HourlyDeliveryChart 
+        <LazyHourlyDeliveryChart 
           data={dashboardData?.entregasPorHora || []} 
           loading={isLoading}
         />

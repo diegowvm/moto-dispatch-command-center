@@ -1,3 +1,4 @@
+import React from 'react';
 import { PieChart, Pie, ResponsiveContainer, Cell, Tooltip, Legend } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -12,7 +13,7 @@ interface StatusDistributionChartProps {
   loading?: boolean;
 }
 
-export const StatusDistributionChart = ({ data, loading = false }: StatusDistributionChartProps) => {
+export const StatusDistributionChart = React.memo<StatusDistributionChartProps>(({ data, loading = false }) => {
   if (loading) {
     return (
       <Card className="bg-card border-border">
@@ -92,4 +93,6 @@ export const StatusDistributionChart = ({ data, loading = false }: StatusDistrib
       </CardContent>
     </Card>
   );
-};
+});
+
+StatusDistributionChart.displayName = 'StatusDistributionChart';

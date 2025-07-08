@@ -10,7 +10,7 @@ import { StatusBadge } from '@/components/pedidos/StatusBadge';
 import { EntregadorSelector } from '@/components/pedidos/EntregadorSelector';
 import { PedidoTimeline } from '@/components/pedidos/PedidoTimeline';
 import { StatusManager } from '@/components/pedidos/StatusManager';
-import { PedidoMap } from '@/components/map/PedidoMap';
+import { LazyPedidoMap } from '@/components/map/LazyPedidoMap';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -248,7 +248,7 @@ const PedidoDetalhes = () => {
           </Card>
 
           {/* Mapa do Pedido */}
-          <PedidoMap
+          <LazyPedidoMap
             enderecoColeta={pedido.endereco_coleta}
             enderecoEntrega={pedido.endereco_entrega}
             cidadeColeta={pedido.cidade_coleta}

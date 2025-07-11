@@ -1,21 +1,23 @@
 import React from 'react';
 import { LazyMapWrapper } from '@/components/lazy/LazyMapWrapper';
 
-// Lazy loading do componente pesado DeliveryTrackingMap
-const DeliveryTrackingMap = React.lazy(() => 
-  import('./DeliveryTrackingMap').then(module => ({ 
-    default: module.DeliveryTrackingMap 
+// Lazy loading do componente pesado OptimizedDeliveryTrackingMap
+const OptimizedDeliveryTrackingMap = React.lazy(() => 
+  import('./OptimizedDeliveryTrackingMap').then(module => ({ 
+    default: module.OptimizedDeliveryTrackingMap 
   }))
 );
 
 interface LazyDeliveryTrackingMapProps {
   className?: string;
   height?: string;
+  maxEntregadores?: number;
 }
 
 export const LazyDeliveryTrackingMap = React.memo<LazyDeliveryTrackingMapProps>(({ 
   className,
-  height = "500px" 
+  height = "500px",
+  maxEntregadores = 100
 }) => {
   return (
     <LazyMapWrapper
@@ -23,7 +25,11 @@ export const LazyDeliveryTrackingMap = React.memo<LazyDeliveryTrackingMapProps>(
       height={height}
       className={className}
     >
-      <DeliveryTrackingMap className={className} height={height} />
+      <OptimizedDeliveryTrackingMap 
+        className={className} 
+        height={height}
+        maxEntregadores={maxEntregadores}
+      />
     </LazyMapWrapper>
   );
 });

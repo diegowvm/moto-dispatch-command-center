@@ -6,9 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { RealtimeProvider } from "@/components/realtime/RealtimeProvider";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { ErrorBoundary } from "@/components/ui/error-boundary";
-import { AdvancedErrorBoundary } from '@/components/error/AdvancedErrorBoundary';
-import { QueryErrorBoundary } from '@/components/error/QueryErrorBoundary';
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import PerformancePage from "@/pages/dashboard/PerformancePage";
 import { ProgressiveLoader, useLazyWithRetry } from "@/components/ui/progressive-loader";
 import { DashboardSkeleton } from "@/components/ui/dashboard-skeleton";
@@ -65,96 +63,99 @@ const AppContent = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <QueryErrorBoundary>
-          <BrowserRouter>
-        <Routes>
-          {!user ? (
-            <>
-              <Route path="/" element={
-                <ProgressiveLoader>
-                  <Login />
-                </ProgressiveLoader>
-              } />
-              <Route path="/login" element={
-                <ProgressiveLoader>
-                  <Login />
-                </ProgressiveLoader>
-              } />
-              <Route path="*" element={<Navigate to="/login" replace />} />
-            </>
-          ) : (
-            <>
-              <Route path="/acesso-negado" element={
-                <ProgressiveLoader>
-                  <AcessoNegado />
-                </ProgressiveLoader>
-              } />
-              <Route path="/dashboard" element={
-                <ProtectedRoute requireAdmin>
-                  <ProgressiveLoader fallback={<DashboardSkeleton />}>
-                    <DashboardLayout onLogout={signOut} />
-                  </ProgressiveLoader>
-                </ProtectedRoute>
-              }>
-                <Route index element={
-                  <ProgressiveLoader fallback={<DashboardSkeleton />}>
-                    <Dashboard />
-                  </ProgressiveLoader>
-                } />
-                <Route path="entregadores" element={
+        <BrowserRouter>
+          <Routes>
+            {!user ? (
+              <>
+                <Route path="/" element={
                   <ProgressiveLoader>
-                    <Entregadores />
+                    <Login />
                   </ProgressiveLoader>
                 } />
-                <Route path="mapa" element={
+                <Route path="/login" element={
                   <ProgressiveLoader>
-                    <MapaPage />
+                    <Login />
                   </ProgressiveLoader>
                 } />
-                <Route path="usuarios" element={
+                <Route path="*" element={<Navigate to="/login" replace />} />
+              </>
+            ) : (
+              <>
+                <Route path="/acesso-negado" element={
                   <ProgressiveLoader>
-                    <GerenciamentoUsuarios />
+                    <AcessoNegado />
                   </ProgressiveLoader>
                 } />
-                <Route path="pedidos" element={
+                <Route path="/dashboard" element={
+                  <ProtectedRoute requireAdmin>
+                    <ProgressiveLoader fallback={<DashboardSkeleton />}>
+                      <DashboardLayout onLogout={signOut} />
+                    </ProgressiveLoader>
+                  </ProtectedRoute>
+                }>
+                  <Route index element={
+                    <ProgressiveLoader fallback={<DashboardSkeleton />}>
+                      <Dashboard />
+                    </ProgressiveLoader>
+                  } />
+                  <Route path="entregadores" element={
+                    <ProgressiveLoader>
+                      <Entregadores />
+                    </ProgressiveLoader>
+                  } />
+                  <Route path="mapa" element={
+                    <ProgressiveLoader>
+                      <MapaPage />
+                    </ProgressiveLoader>
+                  } />
+                  <Route path="usuarios" element={
+                    <ProgressiveLoader>
+                      <GerenciamentoUsuarios />
+                    </ProgressiveLoader>
+                  } />
+                  <Route path="pedidos" element={
+                    <ProgressiveLoader>
+                      <Pedidos />
+                    </ProgressiveLoader>
+                  } />
+                  <Route path="pedidos/:id" element={
+                    <ProgressiveLoader>
+                      <PedidoDetalhes />
+                    </ProgressiveLoader>
+                  } />
+                  <Route path="performance" element={
+                    <ProgressiveLoader>
+                      <PerformancePage />
+                    </ProgressiveLoader>
+                  } />
+                  <Route path="financeiro" element={
+                    <ProgressiveLoader>
+                      <div className="p-6"><h1 className="text-2xl font-bold">Financeiro - Em desenvolvimento</h1></div>
+                    </ProgressiveLoader>
+                  } />
+                  <Route path="suporte" element={
+                    <ProgressiveLoader>
+                      <div className="p-6"><h1 className="text-2xl font-bold">Suporte - Em desenvolvimento</h1></div>
+                    </ProgressiveLoader>
+                  } />
+                  <Route path="notificacoes" element={
+                    <ProgressiveLoader>
+                      <div className="p-6"><h1 className="text-2xl font-bold">Notificações - Em desenvolvimento</h1></div>
+                    </ProgressiveLoader>
+                  } />
+                </Route>
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/login" element={<Navigate to="/dashboard" replace />} />
+                <Route path="*" element={
                   <ProgressiveLoader>
-                    <Pedidos />
+                    <NotFound />
                   </ProgressiveLoader>
                 } />
-                <Route path="pedidos/:id" element={
-                  <ProgressiveLoader>
-                    <PedidoDetalhes />
-                  </ProgressiveLoader>
-                } />
-                <Route path="financeiro" element={
-                  <ProgressiveLoader>
-                    <div className="p-6"><h1 className="text-2xl font-bold">Financeiro - Em desenvolvimento</h1></div>
-                  </ProgressiveLoader>
-                } />
-                <Route path="suporte" element={
-                  <ProgressiveLoader>
-                    <div className="p-6"><h1 className="text-2xl font-bold">Suporte - Em desenvolvimento</h1></div>
-                  </ProgressiveLoader>
-                } />
-                <Route path="notificacoes" element={
-                  <ProgressiveLoader>
-                    <div className="p-6"><h1 className="text-2xl font-bold">Notificações - Em desenvolvimento</h1></div>
-                  </ProgressiveLoader>
-                } />
-              </Route>
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/login" element={<Navigate to="/dashboard" replace />} />
-              <Route path="*" element={
-                <ProgressiveLoader>
-                  <NotFound />
-                </ProgressiveLoader>
-              } />
-            </>
-          )}
-        </Routes>
+              </>
+            )}
+          </Routes>
         </BrowserRouter>
-      </QueryErrorBoundary>
-    </TooltipProvider>
+      </TooltipProvider>
     </ErrorBoundary>
   );
 };
@@ -172,3 +173,4 @@ const App = () => {
 };
 
 export default App;
+

@@ -7,8 +7,8 @@ import { env } from '@/lib/env';
 // import { supabase } from "@/integrations/supabase/client";
 
 export const supabase = createClient<Database>(
-  env.supabase.url,
-  env.supabase.anonKey,
+  env.SUPABASE_URL,
+  env.SUPABASE_ANON_KEY,
   {
     auth: {
       storage: localStorage,
@@ -28,8 +28,8 @@ export const supabase = createClient<Database>(
 
 // Service role client for admin operations (use with caution)
 export const supabaseAdmin = createClient<Database>(
-  env.supabase.url,
-  env.supabase.serviceRoleKey,
+  env.SUPABASE_URL,
+  env.SUPABASE_SERVICE_ROLE_KEY,
   {
     auth: {
       autoRefreshToken: false,

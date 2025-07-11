@@ -22,6 +22,9 @@ const GerenciamentoUsuarios = useLazyWithRetry(() => import("./pages/dashboard/G
 const Pedidos = useLazyWithRetry(() => import("./pages/dashboard/Pedidos"));
 const PedidoDetalhes = useLazyWithRetry(() => import("./pages/dashboard/PedidoDetalhes"));
 const MapaPage = useLazyWithRetry(() => import("./pages/dashboard/MapaPage"));
+const ModuloFinanceiro = useLazyWithRetry(() => import("./pages/dashboard/ModuloFinanceiro"));
+const GerenciamentoTermos = useLazyWithRetry(() => import("./pages/dashboard/GerenciamentoTermos"));
+const ComunicacaoNotificacoes = useLazyWithRetry(() => import("./pages/dashboard/ComunicacaoNotificacoes"));
 const NotFound = useLazyWithRetry(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -130,7 +133,17 @@ const AppContent = () => {
                   } />
                   <Route path="financeiro" element={
                     <ProgressiveLoader>
-                      <div className="p-6"><h1 className="text-2xl font-bold">Financeiro - Em desenvolvimento</h1></div>
+                      <ModuloFinanceiro />
+                    </ProgressiveLoader>
+                  } />
+                  <Route path="termos" element={
+                    <ProgressiveLoader>
+                      <GerenciamentoTermos />
+                    </ProgressiveLoader>
+                  } />
+                  <Route path="comunicacao" element={
+                    <ProgressiveLoader>
+                      <ComunicacaoNotificacoes />
                     </ProgressiveLoader>
                   } />
                   <Route path="suporte" element={
@@ -140,7 +153,7 @@ const AppContent = () => {
                   } />
                   <Route path="notificacoes" element={
                     <ProgressiveLoader>
-                      <div className="p-6"><h1 className="text-2xl font-bold">Notificações - Em desenvolvimento</h1></div>
+                      <ComunicacaoNotificacoes />
                     </ProgressiveLoader>
                   } />
                 </Route>

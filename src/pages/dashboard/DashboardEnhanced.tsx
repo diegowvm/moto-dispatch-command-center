@@ -74,13 +74,11 @@ const DashboardEnhanced = () => {
         .select('*', { count: 'exact', head: true })
         .in('status', ['recebido', 'enviado', 'a_caminho']);
 
-      // Entregadores online (últimos 5 minutos)
-      const cincoMinutosAtras = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+      // Entregadores online
       const { count: entregadoresOnline } = await supabase
         .from('entregadores')
-        .select('*', { count: 'exact', head: true })
-        .eq('ativo', true)
-        .gte('last_seen', cincoMinutosAtras);
+        .select('id', { count: 'exact', head: true })
+        .in('status', ['disponivel', 'ocupado', 'em_entrega']);
 
       // Empresas ativas hoje
       const { count: empresasAtivas } = await supabase
@@ -424,8 +422,8 @@ const DashboardEnhanced = () => {
 
         <TabsContent value="operacional" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
-            <LazyStatusDistributionChart />
-            <LazyHourlyDeliveryChart />
+            <LazyStatusDistributionChart data={[]} />
+            <LazyHourlyDeliveryChart data={[]} />
           </div>
         </TabsContent>
 
@@ -433,21 +431,21 @@ const DashboardEnhanced = () => {
           <div className="grid gap-4 md:grid-cols-3">
             <MetricCard
               title="Receita Total"
-              value={`R$ ${dashboardData?.metrics?.receitaTotal?.toFixed(2) || "0,00"}`}
+              value={`R$ ${dashboardData?.metrics?.receitaHoje?.toFixed(2) || "0,00"}`}
               description="Todos os tempos"
               icon={DollarSign}
             />
             
             <MetricCard
               title="Comissão Plataforma"
-              value={`R$ ${((dashboardData?.metrics?.receitaTotal || 0) * 0.15).toFixed(2)}`}
+              value={`R$ ${((dashboardData?.metrics?.receitaHoje || 0) * 0.15).toFixed(2)}`}
               description="15% da receita"
               icon={TrendingUp}
             />
             
             <MetricCard
               title="Valor Entregadores"
-              value={`R$ ${((dashboardData?.metrics?.receitaTotal || 0) * 0.85).toFixed(2)}`}
+              value={`R$ ${((dashboardData?.metrics?.receitaHoje || 0) * 0.85).toFixed(2)}`}
               description="85% da receita"
               icon={Truck}
             />

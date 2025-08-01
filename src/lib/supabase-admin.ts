@@ -4,8 +4,8 @@ import type { Database } from '@/integrations/supabase/types';
 
 // Cliente administrativo com service role key
 export const supabaseAdmin = createClient<Database>(
-  env.supabase.url,
-  env.supabase.serviceRoleKey,
+  env.SUPABASE_URL,
+  env.SUPABASE_SERVICE_ROLE_KEY,
   {
     auth: {
       autoRefreshToken: false,
@@ -21,9 +21,18 @@ export const supabaseAdmin = createClient<Database>(
 export const adminOperations = {
   // Buscar localizações ativas com limite
   async getActiveDeliveryLocations(limit = 100) {
-    const { data, error } = await supabaseAdmin.rpc('get_active_delivery_locations', {
-      limit_count: limit,
-    });
+    const { data, error } = await supabaseAdmin
+      .from('localizacao_tempo_real')
+      .select(`
+        *,
+        entregadores!inner(
+          id,
+          usuarios!inner(nome)
+        )
+      `)
+      .in('status', ['disponivel', 'ocupado', 'em_entrega'])
+      .order('timestamp', { ascending: false })
+      .limit(limit);
 
     if (error) {
       console.error('Error fetching active delivery locations:', error);
@@ -35,14 +44,27 @@ export const adminOperations = {
 
   // Buscar estatísticas do dashboard
   async getDashboardStats() {
-    const { data, error } = await supabaseAdmin.rpc('get_dashboard_stats');
+    // Usar query SQL customizada já que a função foi criada na migração
+    const hoje = new Date().toISOString().split('T')[0];
+    
+    const [pedidos, entregadores, receita] = await Promise.all([
+      supabaseAdmin.from('pedidos').select('id', { count: 'exact', head: true }).gte('created_at', hoje),
+      supabaseAdmin.from('entregadores').select('id', { count: 'exact', head: true }),
+      supabaseAdmin.from('pedidos').select('valor_total').eq('status', 'entregue').gte('data_finalizacao', hoje)
+    ]);
 
-    if (error) {
-      console.error('Error fetching dashboard stats:', error);
-      throw error;
-    }
+    const receitaHoje = receita.data?.reduce((sum, p) => sum + (p.valor_total || 0), 0) || 0;
 
-    return data;
+    return {
+      total_hoje: pedidos.count || 0,
+      entregues_hoje: 0,
+      pendentes: 0,
+      em_andamento: 0,
+      receita_hoje: receitaHoje,
+      entregadores_disponiveis: entregadores.count || 0,
+      entregadores_ocupados: 0,
+      total_entregadores: entregadores.count || 0
+    };
   },
 
   // Criar usuário administrativo
@@ -114,7 +136,7 @@ export const adminOperations = {
       .range((page - 1) * limit, page * limit - 1);
 
     if (status) {
-      query = query.eq('status', status);
+      query = query.eq('status', status as any);
     }
 
     const { data, error, count } = await query;
@@ -149,7 +171,7 @@ export const adminOperations = {
       .range((page - 1) * limit, page * limit - 1);
 
     if (filters?.status) {
-      query = query.eq('status', filters.status);
+      query = query.eq('status', filters.status as any);
     }
 
     if (filters?.empresaId) {

@@ -52,7 +52,7 @@ export const OptimizedDeliveryTrackingMap = ({
   });
 
   // Set Mapbox access token from environment
-  mapboxgl.accessToken = env.mapbox.accessToken;
+  mapboxgl.accessToken = env.MAPBOX_ACCESS_TOKEN;
 
   // Memoized status configuration
   const statusConfig = useMemo(() => ({

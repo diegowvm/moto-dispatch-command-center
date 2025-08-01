@@ -63,7 +63,7 @@ export const adminOperations = {
     }
 
     // Criar registro na tabela usuarios
-    const { data: userData: userRecord, error: userError } = await supabaseAdmin
+    const { data: userRecord, error: userError } = await supabaseAdmin
       .from('usuarios')
       .insert({
         auth_user_id: authData.user.id,
